@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { createPopper } from '@popperjs/core';
 import { onClickOutside as useClickOutside, useToggle } from '@vueuse/core';
 import { format } from 'date-fns';
-import { computed, ref, toRef, watch } from 'vue';
+import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue';
 
 import MolDay from '@/components/Molecules/MolDaysView.vue';
 import MolDecade from '@/components/Molecules/MolDecadesView.vue';
@@ -10,10 +11,13 @@ import MolYear from '@/components/Molecules/MolYearsView.vue';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useCalendarMultiple } from '@/hooks/useCalendarMultiple';
 import { useDateRange } from '@/hooks/useDateRange.js';
-import { Mode, ViewMode } from '@/types/datePicker';
+import { Mode, PopperOffsetCtx, ViewMode } from '@/types/datePicker';
 import { isArray, isValidDate } from '@/utils/is';
 
+import type { Placement } from '@popperjs/core';
 import type { Ref } from 'vue';
+
+export type PopperInstance = ReturnType<typeof createPopper>;
 
 // TODO: start-day-of-week, lang, shortcut,
 export interface CalendarProps {
@@ -22,10 +26,14 @@ export interface CalendarProps {
   format?: string;
   disabledDate?: (date: Date) => boolean;
   width?: number;
+  placement?: Placement;
 }
 
 interface CalendarEmits {
   (type: 'update:model-value', val: Date | Date[]): void;
+  (type: 'open'): void;
+  (type: 'close'): void;
+  (type: 'click-outside', event: PointerEvent): void;
 }
 
 const props = withDefaults(defineProps<CalendarProps>(), {
@@ -34,10 +42,13 @@ const props = withDefaults(defineProps<CalendarProps>(), {
   mode: Mode.DatePicker,
   format: 'yyyy-MM-dd',
   disabledDate: () => false,
+  placement: 'auto',
 });
 
 const emits = defineEmits<CalendarEmits>();
 
+const inputRef = ref<HTMLInputElement | null>(null);
+const calendarRef = ref<HTMLDivElement | null>(null);
 const modelValue = toRef(props, 'modelValue');
 const [isOpen, toggleOpen] = useToggle(false);
 
@@ -113,12 +124,6 @@ const dateString = computed(() => {
   return format(modelValue.value, props.format);
 });
 
-const inputRef = ref<HTMLInputElement | null>(null);
-const calendarRef = ref<HTMLDivElement | null>(null);
-
-const calendarStyle = ref<Record<string, string | undefined> | undefined>(
-  undefined
-);
 const onInputChange = (event: Event) => {
   if (!event.target) return;
   let val = (event.target as HTMLInputElement).value;
@@ -133,6 +138,11 @@ const onInputChange = (event: Event) => {
   setDisplayDate(newVal);
   toggleOpen(false);
 };
+
+useClickOutside(calendarRef, event => {
+  emits('click-outside', event);
+  toggleOpen(false);
+});
 
 const displayViewComponentPkg = computed(() => {
   switch (viewMode.value) {
@@ -168,40 +178,59 @@ const displayViewComponentPkg = computed(() => {
   }
 });
 
+let instance: PopperInstance | null = null;
+
+const destroyAndCreatePopperInstanceHandler = () => {
+  if (!calendarRef.value || !inputRef.value) return;
+
+  // calendarRef.value.getClientRects()
+
+  if (instance) {
+    instance.destroy();
+    instance = null;
+  }
+
+  instance = createPopper(inputRef.value, calendarRef.value, {
+    placement: props.placement,
+    // placement: 'top',
+    modifiers: [
+      {
+        name: 'offset',
+        options: {
+          offset(ctx: PopperOffsetCtx) {
+            const { placement } = ctx;
+            if (/top/.test(placement)) {
+              return [0, 10];
+            }
+            return [0, 5];
+          },
+        },
+      },
+    ],
+  });
+};
 watch(isOpen, val => {
-  if (!val || !inputRef.value) return;
+  if (!val) return emits('close');
+  if (!inputRef.value) return;
 
-  const inputRect = inputRef.value.getBoundingClientRect();
-
-  // bottom: 479
-  // height: 194
-  // left: 0
-  // right: 350
-  // top: 285
-  // width: 350
-  // x: 0
-  // y: 285
-  const CALENDAR_HEIGHT = 250;
-  // FIXME TODO: 優化算法(根據剩餘空間計算，彈窗打開就鎖住 scroll)、偏移 props
-  // if (window?.innerHeight)
-  const y =
-    inputRect.top < inputRect.bottom
-      ? { top: `${inputRect.top + inputRect.height + 2}px` }
-      : { bottom: `${inputRect.bottom - inputRect.height - 2}px` };
-  const x =
-    inputRect.left < inputRect.right
-      ? { left: `${inputRect.left - inputRect.width / 2}px` }
-      : { right: `${inputRect.right + inputRect.width / 2}px` };
-
-  calendarStyle.value = {
-    width: `${props.width}px`,
-    ...y,
-    ...x,
-  };
+  emits('open');
 });
 
-useClickOutside(calendarRef, event => {
-  toggleOpen(false);
+watch([isOpen, () => props.placement], pkg => {
+  const [isOpenVal, placement] = pkg;
+
+  if (!isOpenVal) return;
+
+  nextTick(() => {
+    destroyAndCreatePopperInstanceHandler();
+  });
+});
+
+onUnmounted(() => {
+  if (instance) {
+    instance.destroy();
+    instance = null;
+  }
 });
 </script>
 
@@ -218,29 +247,28 @@ useClickOutside(calendarRef, event => {
       @change="onInputChange"
       @click.self="toggleOpen(true)"
     >
-    <Teleport to="body">
-      <div
-        v-if="isOpen"
-        ref="calendarRef"
-        :style="calendarStyle"
-        class="absolute text-sm bg-gray-500 rounded-md p-2 shadow-sm shadow-gray"
-      >
-        <component
-          :is="displayViewComponentPkg.component"
-          :display-date="displayDate"
-          :change-view-mode="changeViewMode"
-          :set-display-date="setDisplayDate"
-          :decade-header="decadeHeader"
-          :year-header="yearHeader"
-          :month-header="monthHeader"
-          :day-header="dayHeader"
-          :decade-body="decadeBody"
-          :year-body="yearBody"
-          :month-body="monthBody"
-          :day-body="dayBody"
-        />
-      </div>
-    </Teleport>
+    <!-- <Teleport to="body"> -->
+    <div
+      v-if="isOpen"
+      ref="calendarRef"
+      class="text-sm bg-gray-500 rounded-md p-2 shadow-sm shadow-gray"
+    >
+      <component
+        :is="displayViewComponentPkg.component"
+        :display-date="displayDate"
+        :change-view-mode="changeViewMode"
+        :set-display-date="setDisplayDate"
+        :decade-header="decadeHeader"
+        :year-header="yearHeader"
+        :month-header="monthHeader"
+        :day-header="dayHeader"
+        :decade-body="decadeBody"
+        :year-body="yearBody"
+        :month-body="monthBody"
+        :day-body="dayBody"
+      />
+    </div>
+    <!-- </Teleport> -->
   </div>
 </template>
 
