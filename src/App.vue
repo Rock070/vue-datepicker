@@ -18,7 +18,7 @@ const disabledDate = (date: Date) => {
 </script>
 
 <template>
-  <div class="w-screen flex flex-col items-center justify-start">
+  <div class="w-[4000px] h-[2000px] flex flex-col items-center justify-center">
     <!-- <a
       href="https://vitejs.dev"
       target="_blank"
@@ -40,7 +40,7 @@ const disabledDate = (date: Date) => {
       >
     </a> -->
 
-    <div class="flex flex-col space-y-10 items-center text-center">
+    <div class="relative flex flex-col space-y-10 items-center text-center">
       <section>
         <div>Calendar</div>
         <div>{{ date.toLocaleDateString() }}</div>

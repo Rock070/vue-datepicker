@@ -1,3 +1,5 @@
+import type { Placement } from '@popperjs/core';
+
 export interface CalendarBtn {
   value: Date | number;
   text?: string | number;
@@ -53,4 +55,10 @@ export const enum WheelDirection {
   BOTTOM,
   LEFT,
   RIGHT,
+}
+
+export interface PopperOffsetCtx {
+  reference: DOMRect;
+  popper: DOMRect;
+  placement: Placement;
 }
