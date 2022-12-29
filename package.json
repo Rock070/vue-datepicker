@@ -5,14 +5,20 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build",
-    "prepare": "husky install",
-    "lint:script": "eslint \"./src/**/*.{js,ts,vue}\"",
-    "lint:script:fix": "eslint \"./src/**/*.{js,ts,vue}\" --fix",
-    "lint": "pnpm lint:script",
+    "preview": "vite preview",
+
+    "lint:js": "eslint \"./src/**/*.{js,ts,vue}\"",
+    "lintfix:js": "eslint \"./src/**/*.{js,ts,vue}\" --fix",
+
+    "test:unit": "vitest run",
+    "test:type": "vue-tsc --noEmit",
+
     "story:dev": "histoire dev",
     "story:build": "histoire build",
     "story:preview": "histoire preview",
-    "preview": "vite preview"
+
+    "coverage": "vitest run --coverage",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.6",
