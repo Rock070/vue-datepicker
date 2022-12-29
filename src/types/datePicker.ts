@@ -59,6 +59,6 @@ export const enum WheelDirection {
 
 export interface PopperOffsetCtx {
   reference: DOMRect;
-  popper: DOMRectt;
+  popper: DOMRect;
   placement: Placement;
 }
