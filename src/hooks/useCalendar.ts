@@ -1,16 +1,10 @@
 import { computed, ref, watch } from 'vue';
 
-import {
-  DAYS_NUM_IN_ONE_ROW,
-  MONTH_NAMES,
-} from '@/helpers/const';
+import useActive from '@/composables/useActive';
+import { DAYS_NUM_IN_ONE_ROW, MONTH_NAMES } from '@/helpers/const';
 import getCalendar from '@/helpers/getCalendar';
 import isSameYearMonth from '@/helpers/isSameYearMonth';
-import {
-  CalendarBtn,
-  ViewMode,
-} from '@/types/datePicker';
-import useActive from '@/composables/useActive';
+import { CalendarBtn, ViewMode } from '@/types/datePicker';
 import pipe from '@/utils/pipe';
 import splitGroup from '@/utils/splitGroup';
 import { get } from '@/utils/time/get';

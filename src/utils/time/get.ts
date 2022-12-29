@@ -1,7 +1,4 @@
-import {
-  DAY_MS,
-  DAYS_NUM_IN_ONE_ROW,
-} from '@/helpers/const';
+import { DAY_MS, DAYS_NUM_IN_ONE_ROW } from '@/helpers/const';
 import type { Time } from '@/types/datePicker';
 
 export const getFullYear = (date: Date) => date.getFullYear();

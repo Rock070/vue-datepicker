@@ -5,8 +5,8 @@ import HelloWorld from './components/HelloWorld.vue';
 
 import BasicButton from '@/components/Atoms/BasicButton.vue';
 import OrgCalendar from '@/components/Organisms/OrgCalendar.vue';
-import { Mode } from '@/types/datePicker';
 import useActive from '@/composables/useActive';
+import { Mode } from '@/types/datePicker';
 const [date, setDate] = useActive(new Date());
 const [MultiDate, setMultiDate] = useActive([new Date()]);
 const [rangeDate, setRangeDate] = useActive([new Date()]);
@@ -51,7 +51,7 @@ const disabledDate = (date: Date) => {
           :disabled-date="disabledDate"
         />
       </section>
-      <section>
+      <!-- <section>
         <div>Multiple</div>
         <div>{{ date.toLocaleDateString() }}</div>
         <OrgCalendar
@@ -69,7 +69,7 @@ const disabledDate = (date: Date) => {
           :mode="Mode.DateRange"
           :disabled-date="disabledDate"
         />
-      </section>
+      </section> -->
     </div>
   </div>
   <!-- <HelloWorld msg="Vite + Vue" /> -->

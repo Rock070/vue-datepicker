@@ -1,15 +1,9 @@
 import { computed, ref, watch } from 'vue';
 
-import {
-  DAYS_NUM_IN_ONE_ROW,
-  MONTH_NAMES,
-} from '@/helpers/const';
-import getCalendar from '@/helpers/getCalendar';
-import {
-  CalendarBtn,
-  ViewMode,
-} from '@/types/datePicker';
 import useActive from '@/composables/useActive';
+import { DAYS_NUM_IN_ONE_ROW, MONTH_NAMES } from '@/helpers/const';
+import getCalendar from '@/helpers/getCalendar';
+import { CalendarBtn, ViewMode } from '@/types/datePicker';
 import inRange from '@/utils/inRange';
 import pipe from '@/utils/pipe';
 import splitGroup from '@/utils/splitGroup';

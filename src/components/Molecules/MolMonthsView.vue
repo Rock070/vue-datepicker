@@ -2,10 +2,7 @@
 import BasicTable from '@/components/Atoms/BasicTable.vue';
 import MolButtonArrowPair from '@/components/Molecules/MolButtonArrowPair.vue';
 import setCalculatedTime from '@/helpers/setCalculatedTime';
-import {
-  CalendarBtn,
-  ViewMode,
-} from '@/types/datePicker';
+import { CalendarBtn, ViewMode } from '@/types/datePicker';
 import add from '@/utils/time/add';
 import minus from '@/utils/time/minus';
 
