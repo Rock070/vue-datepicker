@@ -1,0 +1,56 @@
+{
+  "name": "twjoin-vue3-vite-template",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "prepare": "husky install",
+    "lint:script": "eslint \"./src/**/*.{js,ts,vue}\"",
+    "lint:script:fix": "eslint \"./src/**/*.{js,ts,vue}\" --fix",
+    "lint": "pnpm lint:script",
+    "story:dev": "histoire dev",
+    "story:build": "histoire build",
+    "story:preview": "histoire preview",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/core": "^9.9.0",
+    "date-fns": "^2.29.3",
+    "pinia": "^2.0.26",
+    "ufo": "^1.0.1",
+    "vue": "^3.2.45",
+    "vue-router": "^4.1.6"
+  },
+  "devDependencies": {
+    "@histoire/plugin-vue": "^0.11.9",
+    "@iconify/vue": "^4.0.2",
+    "@tailwindcss/line-clamp": "^0.4.2",
+    "@types/node": "^16.11.0",
+    "@typescript-eslint/eslint-plugin": "^5.44.0",
+    "@typescript-eslint/parser": "^5.44.0",
+    "@vitejs/plugin-vue": "^3.2.0",
+    "autoprefixer": "^10.4.13",
+    "eslint": "^8.28.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier-vue": "^4.2.0",
+    "eslint-plugin-vue": "^9.8.0",
+    "histoire": "^0.11.9",
+    "husky": "^8.0.2",
+    "lint-staged": "^13.0.4",
+    "postcss": "^8.4.19",
+    "sass": "^1.56.1",
+    "tailwind-children": "^0.5.0",
+    "tailwindcss": "^3.2.4",
+    "typescript": "^4.8.4",
+    "vite": "^3.2.4",
+    "vitest": "^0.26.2",
+    "vue-tsc": "^1.0.9"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue}": [
+      "eslint --max-warnings=0"
+    ]
+  }
+}
