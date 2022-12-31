@@ -8,11 +8,12 @@ import add from '@/utils/time/add';
 import minus from '@/utils/time/minus';
 
 interface MolYearHeaderProps {
-  yearHeader: string;
   displayDate: Date;
   setDisplayDate: (date: Date) => void;
   changeViewMode: (mode: ViewMode) => void;
-  yearBody: CalendarBtn[][];
+
+  header: string;
+  body: CalendarBtn[][];
 }
 
 const props = withDefaults(defineProps<MolYearHeaderProps>(), {});
@@ -24,7 +25,7 @@ const props = withDefaults(defineProps<MolYearHeaderProps>(), {});
       <tr>
         <th>
           <MolButtonArrowPair
-            :display-title="yearHeader"
+            :display-title="header"
             is-double-arrow
             @handler:title="changeViewMode(ViewMode.Decade)"
             @handler:double-left="setCalculatedTime(displayDate, minus, { years: 100 }, setDisplayDate)"
@@ -41,7 +42,7 @@ const props = withDefaults(defineProps<MolYearHeaderProps>(), {});
           <BasicTable>
             <template #body>
               <tr
-                v-for="(group, index) in yearBody"
+                v-for="(group, index) in body"
                 :key="index"
               >
                 <td

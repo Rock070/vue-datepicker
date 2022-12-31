@@ -24,9 +24,6 @@ export const useCalendar = (params: UseFnParams) => {
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
 
   const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
-  const weekDayStrList = createRange(7).map(
-    item => `2023-1-${1 + item + firstDayOfWeek.value}`
-  ); // 2023-1-1 is Sunday;
 
   const dayHeader = computed(() => {
     const { y, m } = get(displayDate.value);
@@ -37,6 +34,9 @@ export const useCalendar = (params: UseFnParams) => {
   });
 
   const weekdayDateList = computed(() => {
+    const weekDayStrList = createRange(7).map(
+      item => `2023-1-${1 + item + firstDayOfWeek.value}`
+    ); // 2023-1-1 is Sunday;
     return weekDayStrList.map(item =>
       getTimeLocale(new Date(item), locale.value, { weekday: 'short' })
     );

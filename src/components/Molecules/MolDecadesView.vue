@@ -9,10 +9,11 @@ import add from '@/utils/time/add';
 import minus from '@/utils/time/minus';
 
 interface MolDecadeProps {
-  decadeHeader: string;
   displayDate: Date;
   setDisplayDate: (date: Date) => void;
-  decadeBody: CalendarBtn[][];
+
+  header: string;
+  body: CalendarBtn[][];
 }
 
 const props = withDefaults(defineProps<MolDecadeProps>(), {});
@@ -25,7 +26,7 @@ const props = withDefaults(defineProps<MolDecadeProps>(), {});
         <th>
           <MolButtonArrowPair
             :title-disabled="true"
-            :display-title="decadeHeader"
+            :display-title="header"
             @handler:left="setCalculatedTime(displayDate, minus, { years: 100 }, setDisplayDate)"
             @handler:right="setCalculatedTime(displayDate, add, { years: 100 }, setDisplayDate)"
           />
@@ -38,7 +39,7 @@ const props = withDefaults(defineProps<MolDecadeProps>(), {});
           <BasicTable>
             <template #body>
               <tr
-                v-for="(group, index) in decadeBody"
+                v-for="(group, index) in body"
                 :key="index"
               >
                 <td
