@@ -1,10 +1,12 @@
 import { computed, ref, watch } from 'vue';
 
 import useActive from '@/composables/useActive';
-import { DAYS_NUM_IN_ONE_ROW, MONTH_NAMES } from '@/helpers/const';
+import { DAYS_NUM_IN_ONE_ROW } from '@/helpers/const';
 import getCalendar from '@/helpers/getCalendar';
+import getTimeLocale from '@/helpers/getTimeLocale';
 import isSameYearMonth from '@/helpers/isSameYearMonth';
-import { CalendarBtn, ViewMode } from '@/types/datePicker';
+import { CalendarBtn, UseFnParams, ViewMode } from '@/types/datePicker';
+import createRange from '@/utils/createRange';
 import pipe from '@/utils/pipe';
 import splitGroup from '@/utils/splitGroup';
 import { get } from '@/utils/time/get';
@@ -16,30 +18,38 @@ import isSameDecade from '@/utils/time/isSameDecade';
 import isSameYear from '@/utils/time/isSameYear';
 import isToday from '@/utils/time/isToday';
 
-import type { Ref } from 'vue';
-
-export const useCalendar = (
-  date: Ref<Date>,
-  setDate: (date: Date) => void,
-  disabledDate: (date: Date) => boolean,
-  toggleOpen: (val: boolean) => boolean
-) => {
+export const useCalendar = (params: UseFnParams) => {
+  const { date, setDate, disabledDate, toggleOpen, firstDayOfWeek, locale } =
+    params;
   const [displayDate, setDisplayDate] = useActive(date.value);
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
-  const dayHeader = ref('');
-  const dayBody = ref<CalendarBtn[][]>([]);
-  const monthHeader = ref('');
-  const monthBody = ref<CalendarBtn[][]>([]);
-  const yearHeader = ref('');
-  const yearBody = ref<CalendarBtn[][]>([]);
   const decadeHeader = ref('');
+  const monthHeader = ref('');
+  const yearHeader = ref('');
+  const dayHeader = ref('');
   const decadeBody = ref<CalendarBtn[][]>([]);
+  const yearBody = ref<CalendarBtn[][]>([]);
+  const monthBody = ref<CalendarBtn[][]>([]);
+  const dayBody = ref<CalendarBtn[][]>([]);
 
   // body
   const getDayHeader = () => {
     const { y, m } = get(displayDate.value);
-    dayHeader.value = `${MONTH_NAMES[m]} ${y}`;
+    const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
+    const monthList = monthStrList.map(item =>
+      getTimeLocale(new Date(item), locale.value, { month: 'long' })
+    );
+    dayHeader.value = `${monthList[m]} ${y}`;
   };
+
+  const weekdayDateList = computed(() => {
+    const weekDayStrList = createRange(7).map(
+      item => `2023-1-${1 + item + firstDayOfWeek.value}`
+    ); // 2023-1-1 is Sunday);
+    return weekDayStrList.map(item =>
+      getTimeLocale(new Date(item), locale.value, { weekday: 'short' })
+    );
+  });
 
   const getDayBody = () => {
     const [hoverDate, setHoverDate] = useActive(date.value);
@@ -52,37 +62,39 @@ export const useCalendar = (
     };
 
     const calendarDisplay = computed<CalendarBtn[][]>(() => {
-      const result = getCalendar(displayDate.value).map(item => {
-        const value = item.value as Date;
-        const isSelected = isSameDate(value, date.value);
+      const result = getCalendar(displayDate.value, firstDayOfWeek.value).map(
+        item => {
+          const value = item.value as Date;
+          const isSelected = isSameDate(value, date.value);
 
-        const disabled = (function () {
-          const compareDate = isToday(value)
-            ? getEndTimeOfTheDate(value)
-            : value;
-          return disabledDate(compareDate);
-        })();
+          const disabled = (function () {
+            const compareDate = isToday(value)
+              ? getEndTimeOfTheDate(value)
+              : value;
+            return disabledDate(compareDate);
+          })();
 
-        const clickFn = disabled
-          ? undefined
-          : () => {
-              setDisplayDate(value);
-              setDate(value);
-              toggleOpen(false);
-            };
+          const clickFn = disabled
+            ? undefined
+            : () => {
+                setDisplayDate(value);
+                setDate(value);
+                toggleOpen(false);
+              };
 
-        return {
-          ...item,
-          clickFn,
-          mouseseEnter: () => {
-            // TODO: 可以優化成用 css hover + not:hover + tailwind group
-            setHoverDate(value);
-          },
-          isRangeHover: isRangeHoverHandler(value),
-          isSelected,
-          disabled,
-        };
-      });
+          return {
+            ...item,
+            clickFn,
+            mouseseEnter: () => {
+              // TODO: 可以優化成用 css hover + not:hover + tailwind group
+              setHoverDate(value);
+            },
+            isRangeHover: isRangeHoverHandler(value),
+            isSelected,
+            disabled,
+          };
+        }
+      );
 
       return splitGroup(result, DAYS_NUM_IN_ONE_ROW);
     });
@@ -96,6 +108,11 @@ export const useCalendar = (
   };
 
   const getMonthsBody = () => {
+    const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
+    const monthList = monthStrList.map(item =>
+      getTimeLocale(new Date(item), locale.value, { month: 'short' })
+    );
+
     const { y } = get(displayDate.value);
     const setDisplayMonth = (monthVal: number) => {
       const selectMonth = new Date(y, monthVal);
@@ -115,7 +132,7 @@ export const useCalendar = (
     const pipeLine = pipe(transformMonth, (months: CalendarBtn[]) =>
       splitGroup(months, 3)
     );
-    const monthGroup = pipeLine(MONTH_NAMES) as CalendarBtn[][];
+    const monthGroup = pipeLine(monthList) as CalendarBtn[][];
     monthBody.value = monthGroup;
   };
 
@@ -229,6 +246,7 @@ export const useCalendar = (
     changeViewMode,
     dayHeader,
     dayBody,
+    weekdayDateList,
     monthHeader,
     monthBody,
     yearHeader,

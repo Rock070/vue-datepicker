@@ -1,4 +1,5 @@
 import type { Placement } from '@popperjs/core';
+import type { ComputedRef, Ref } from 'vue';
 
 export interface CalendarBtn {
   value: Date | number;
@@ -61,4 +62,13 @@ export interface PopperOffsetCtx {
   reference: DOMRect;
   popper: DOMRect;
   placement: Placement;
+}
+
+export interface UseFnParams {
+  date: Ref<Date>;
+  setDate: (date: Date) => void;
+  disabledDate: (date: Date) => boolean;
+  toggleOpen: (value?: boolean | undefined) => boolean;
+  locale: ComputedRef<Intl.LocalesArgument>;
+  firstDayOfWeek: ComputedRef<number>;
 }

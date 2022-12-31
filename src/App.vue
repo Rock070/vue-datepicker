@@ -1,8 +1,4 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue';
-
 import BasicButton from '@/components/Atoms/BasicButton.vue';
 import OrgCalendar from '@/components/Organisms/OrgCalendar.vue';
 import useActive from '@/composables/useActive';
@@ -19,27 +15,6 @@ const disabledDate = (date: Date) => {
 
 <template>
   <div class="w-[4000px] h-[2000px] flex flex-col items-center justify-center">
-    <!-- <a
-      href="https://vitejs.dev"
-      target="_blank"
-    >
-      <img
-        src="/vite.svg"
-        class="logo"
-        alt="Vite logo"
-      >
-    </a>
-    <a
-      href="https://vuejs.org/"
-      target="_blank"
-    >
-      <img
-        src="./assets/vue.svg"
-        class="logo vue"
-        alt="Vue logo"
-      >
-    </a> -->
-
     <div class="relative flex flex-col space-y-10 items-center text-center">
       <section>
         <div>Calendar</div>
@@ -48,6 +23,8 @@ const disabledDate = (date: Date) => {
           v-model="date"
           format="yyyy/MM/dd hh:mm:ss"
           :mode="Mode.DatePicker"
+          first-day-of-week="3"
+          locale="zho"
           :disabled-date="disabledDate"
         />
       </section>
@@ -72,7 +49,6 @@ const disabledDate = (date: Date) => {
       </section> -->
     </div>
   </div>
-  <!-- <HelloWorld msg="Vite + Vue" /> -->
 </template>
 
 <style scoped>
