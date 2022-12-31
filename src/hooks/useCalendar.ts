@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 
 import useActive from '@/composables/useActive';
 import { DAYS_NUM_IN_ONE_ROW } from '@/helpers/const';
@@ -23,24 +23,15 @@ export const useCalendar = (params: UseFnParams) => {
     params;
   const [displayDate, setDisplayDate] = useActive(date.value);
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
-  const decadeHeader = ref('');
-  const monthHeader = ref('');
-  const yearHeader = ref('');
-  const dayHeader = ref('');
-  const decadeBody = ref<CalendarBtn[][]>([]);
-  const yearBody = ref<CalendarBtn[][]>([]);
-  const monthBody = ref<CalendarBtn[][]>([]);
-  const dayBody = ref<CalendarBtn[][]>([]);
 
-  // body
-  const getDayHeader = () => {
+  const dayHeader = computed(() => {
     const { y, m } = get(displayDate.value);
     const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
     const monthList = monthStrList.map(item =>
       getTimeLocale(new Date(item), locale.value, { month: 'long' })
     );
-    dayHeader.value = `${monthList[m]} ${y}`;
-  };
+    return `${monthList[m]} ${y}`;
+  });
 
   const weekdayDateList = computed(() => {
     const weekDayStrList = createRange(7).map(
@@ -51,7 +42,7 @@ export const useCalendar = (params: UseFnParams) => {
     );
   });
 
-  const getDayBody = () => {
+  const dayBody = computed<CalendarBtn[][]>(() => {
     const [hoverDate, setHoverDate] = useActive(date.value);
 
     const isRangeHoverHandler = (itemDate: Date) => {
@@ -99,15 +90,15 @@ export const useCalendar = (params: UseFnParams) => {
       return splitGroup(result, DAYS_NUM_IN_ONE_ROW);
     })();
 
-    dayBody.value = calendarDisplay;
-  };
+    return calendarDisplay;
+  });
 
-  const getMonthsHeader = () => {
+  const monthHeader = computed(() => {
     const { y } = get(displayDate.value);
-    monthHeader.value = `${y}`;
-  };
+    return `${y}`;
+  });
 
-  const getMonthsBody = () => {
+  const monthBody = computed<CalendarBtn[][]>(() => {
     const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
     const monthList = monthStrList.map(item =>
       getTimeLocale(new Date(item), locale.value, { month: 'short' })
@@ -133,15 +124,15 @@ export const useCalendar = (params: UseFnParams) => {
       splitGroup(months, 3)
     );
     const monthGroup = pipeLine(monthList) as CalendarBtn[][];
-    monthBody.value = monthGroup;
-  };
+    return monthGroup;
+  });
 
-  const getYearsHeader = () => {
+  const yearHeader = computed(() => {
     const y = getDecade(displayDate.value);
-    yearHeader.value = `${y + 1} - ${y + 10}`;
-  };
+    return `${y + 1} - ${y + 10}`;
+  });
 
-  const getYearsBody = () => {
+  const yearBody = computed<CalendarBtn[][]>(() => {
     const year = getDecade(displayDate.value);
     const years = Array.from({ length: 10 }, (_, index) => year + index + 1);
 
@@ -164,15 +155,16 @@ export const useCalendar = (params: UseFnParams) => {
       splitGroup(years, 3)
     );
     const yearGroup = pipeLine(years) as CalendarBtn[][];
-    yearBody.value = yearGroup;
-  };
-  const getDecadesHeader = () => {
+
+    return yearGroup;
+  });
+  const decadeHeader = computed(() => {
     const y = getCentury(displayDate.value);
 
-    decadeHeader.value = `${y + 1} - ${y + 100}`;
-  };
+    return `${y + 1} - ${y + 100}`;
+  });
 
-  const getDecadesBody = () => {
+  const decadeBody = computed<CalendarBtn[][]>(() => {
     const decade = getCentury(displayDate.value);
     const decades = Array.from({ length: 10 }, (_, index) => {
       const RATE = 10;
@@ -209,35 +201,8 @@ export const useCalendar = (params: UseFnParams) => {
       splitGroup(decades, 3)
     );
     const decadeGroup = pipeLine(decades) as CalendarBtn[][];
-    decadeBody.value = decadeGroup;
-  };
-
-  watch(
-    [date, displayDate, viewMode, locale, weekdayDateList],
-    () => {
-      switch (viewMode.value) {
-        case ViewMode.Day:
-          getDayHeader();
-          getDayBody();
-          break;
-        case ViewMode.Month:
-          getMonthsHeader();
-          getMonthsBody();
-          break;
-        case ViewMode.Year:
-          getYearsHeader();
-          getYearsBody();
-          break;
-        case ViewMode.Decade:
-          getDecadesHeader();
-          getDecadesBody();
-          break;
-      }
-    },
-    {
-      immediate: true,
-    }
-  );
+    return decadeGroup;
+  });
 
   return {
     displayDate,

@@ -188,7 +188,7 @@ const displayViewComponentPkg = computed(() => {
         key: 'day',
         component: MolDay,
         header: dayHeader.value,
-        body: dayBody.value,
+        body: dayBody,
       };
   }
 });
