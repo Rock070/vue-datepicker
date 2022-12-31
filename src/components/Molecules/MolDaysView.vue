@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import BasicButton from '@/components/Atoms/BasicButton.vue';
 import BasicTable from '@/components/Atoms/BasicTable.vue';
 import MolButtonArrowPair from '@/components/Molecules/MolButtonArrowPair.vue';
 import setCalculatedTime from '@/helpers/setCalculatedTime';
 import { CalendarBtn, ViewMode } from '@/types/datePicker';
-import createRange from '@/utils/createRange';
 import add from '@/utils/time/add';
 import minus from '@/utils/time/minus';
 interface MolDayProps {
-  dayHeader: string;
+  weekdayDateList: string[];
+
   displayDate: Date;
   setDisplayDate: (date: Date) => void;
   changeViewMode: (mode: ViewMode) => void;
-  dayBody: CalendarBtn[][];
-  weekdayDateList: string[];
+
+  header: string;
+  body: CalendarBtn[][];
 }
 
 const props = withDefaults(defineProps<MolDayProps>(), {});
@@ -27,7 +26,7 @@ const props = withDefaults(defineProps<MolDayProps>(), {});
       <tr>
         <th>
           <MolButtonArrowPair
-            :display-title="dayHeader"
+            :display-title="header"
             :is-double-arrow="true"
             @handler:left="setCalculatedTime(displayDate, minus, { months: 1 }, setDisplayDate)"
             @handler:title="changeViewMode(ViewMode.Month)"
@@ -55,7 +54,7 @@ const props = withDefaults(defineProps<MolDayProps>(), {});
             </template>
             <template #body>
               <tr
-                v-for="(group, index) in dayBody"
+                v-for="(group, index) in body"
                 :key="index"
               >
                 <td
@@ -68,7 +67,7 @@ const props = withDefaults(defineProps<MolDayProps>(), {});
                   :data-test-id="item.isThisMonth ? 'calendar-this-month-date' : undefined"
                   class="p-1 text-center cursor-pointer select-none"
                   :class="{
-                    'text-gray-700': !item.isThisMonth,
+                    'text-gray-700': !item.isThisMonth && !item.disabled,
                     'bg-blue-300 text-white': !item.disabled && item.isSelected,
 
                     'hover:bg-gray-200': !item.isSelected && !item.disabled,

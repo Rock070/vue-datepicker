@@ -4,6 +4,10 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
+    "dev:reset": "pnpm dlx rimraf node_modules/.vite && vite",
+
+    "reset": "pnpm clean && pnpm i",
+    "clean": "pnpm dlx rimraf node_modules",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
 

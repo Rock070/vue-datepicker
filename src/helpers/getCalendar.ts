@@ -26,10 +26,10 @@ const getCalendar = (date: Date, firstDayOfWeek = 0): CalendarBtn[] => {
   const daysNumInThisMonth = getHowManyDaysInThisMonth(date);
 
   const result: CalendarBtn[] = [];
+
   /**
    * 當月
    */
-
   const firstDayOfThisMonthTimestamp = new Date(y, m, 1).getTime();
   const thisMonthDates = getMonthDate(
     'this',

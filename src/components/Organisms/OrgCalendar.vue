@@ -1,8 +1,26 @@
+<script lang="ts">
+export interface ModeComponentState {
+  key: 'decade' | 'year' | 'month' | 'day';
+  header: ComputedRef<string>;
+  component: Component;
+  body: ComputedRef<CalendarBtn[][]>;
+}
+</script>
+
 <script setup lang="ts">
 import { createPopper } from '@popperjs/core';
 import { onClickOutside as useClickOutside, useToggle } from '@vueuse/core';
 import { format } from 'date-fns';
-import { computed, nextTick, onUnmounted, ref, toRef, watch } from 'vue';
+import {
+  computed,
+  markRaw,
+  nextTick,
+  onUnmounted,
+  reactive,
+  ref,
+  toRef,
+  watch,
+} from 'vue';
 
 import MolDay from '@/components/Molecules/MolDaysView.vue';
 import MolDecade from '@/components/Molecules/MolDecadesView.vue';
@@ -13,19 +31,19 @@ import { useCalendar } from '@/hooks/useCalendar';
 import { useCalendarMultiple } from '@/hooks/useCalendarMultiple';
 import { useDateRange } from '@/hooks/useDateRange.js';
 import {
+  CalendarBtn,
   Mode,
   PopperOffsetCtx,
-  UseFnParams,
   ViewMode,
 } from '@/types/datePicker';
 import { isArray, isValidDate } from '@/utils/is';
 
 import type { Placement } from '@popperjs/core';
-import type { Ref } from 'vue';
+import type { Component, ComputedRef, Ref } from 'vue';
 
 export type PopperInstance = ReturnType<typeof createPopper>;
 
-// TODO: start-day-of-week, lang, shortcut,
+// TODO: shortcut,
 export interface CalendarProps {
   modelValue?: Date | Date[];
   mode?: Mode;
@@ -52,7 +70,7 @@ const props = withDefaults(defineProps<CalendarProps>(), {
   firstDayOfWeek: 0, // Sets the day that determines the first week of the year, starting with 0 for Sunday.
   disabledDate: () => false,
   placement: 'auto',
-  locale: getNavigatorLocale(),
+  locale: getNavigatorLocale(), // set browser language from user prefer
 });
 
 const emits = defineEmits<CalendarEmits>();
@@ -77,7 +95,7 @@ if (props.mode == undefined) {
   // eslint-disable-next-line no-console
   console.error('mode');
 }
-if (props.mode & Mode.DateRange && !isArray(props.modelValue)) {
+if (props.mode === Mode.DateRange && !isArray(props.modelValue)) {
   // eslint-disable-next-line no-console
   console.error('Date need to be array type');
 }
@@ -159,27 +177,85 @@ useClickOutside(calendarRef, event => {
   toggleOpen(false);
 });
 
+const componentState = reactive<ModeComponentState>({
+  key: 'day',
+  header: dayHeader,
+  /**
+   * component don't need to be reactive (元件不需要是響應式的)
+   *
+   * MarkRaw usage related to this description from Vue Source,
+   * Component that was made reactive,
+   * This can lead to unnecessary performance overhead,
+   * and should be avoided by marking the component with `markRaw` or using `shallowRef` instead of `ref`.
+   */
+  component: markRaw(MolDay),
+  body: dayBody,
+});
+
+watch(viewMode, val => {
+  const modeComponent = (() => {
+    switch (val) {
+      case ViewMode.Decade:
+        return {
+          key: 'decade',
+          component: MolDecade,
+          header: decadeHeader,
+          body: decadeBody,
+        };
+      case ViewMode.Year:
+        return {
+          key: 'year',
+          component: MolYear,
+          header: yearHeader,
+          body: yearBody,
+        };
+      case ViewMode.Month:
+        return {
+          key: 'month',
+          component: MolMonth,
+          header: monthHeader,
+          body: monthBody,
+        };
+      case ViewMode.Day:
+      default:
+        return {
+          key: 'day',
+          component: MolDay,
+          header: dayHeader,
+          body: dayBody,
+        };
+    }
+  })() as any as ModeComponentState;
+
+  componentState.key = modeComponent.key;
+  componentState.component = markRaw(modeComponent.component);
+  // @ts-expect-error: original type `ComputedRef` is automatically unRef by reactive
+  componentState.header = modeComponent.header;
+  // @ts-expect-error: original type `ComputedRef` is automatically unRef by reactive
+  componentState.body = modeComponent.body;
+});
+
 const displayViewComponentPkg = computed(() => {
   switch (viewMode.value) {
     case ViewMode.Decade:
       return {
         key: 'decade',
         component: MolDecade,
-        header: decadeHeader.value,
+        header: decadeHeader,
         body: decadeBody,
       };
     case ViewMode.Year:
       return {
         key: 'year',
         component: MolYear,
-        header: yearHeader.value,
+        header: yearHeader,
         body: yearBody,
       };
     case ViewMode.Month:
       return {
         key: 'month',
         component: MolMonth,
-        header: monthHeader.value,
+        header: monthHeader,
         body: monthBody,
       };
     case ViewMode.Day:
@@ -187,8 +263,8 @@ const displayViewComponentPkg = computed(() => {
       return {
         key: 'day',
         component: MolDay,
-        header: dayHeader.value,
-        body: dayBody.value,
+        header: dayHeader,
+        body: dayBody,
       };
   }
 });
@@ -198,8 +274,6 @@ let instance: PopperInstance | null = null;
 const destroyAndCreatePopperInstanceHandler = () => {
   if (!calendarRef.value || !inputRef.value) return;
 
-  // calendarRef.value.getClientRects()
-
   if (instance) {
     instance.destroy();
     instance = null;
@@ -207,7 +281,6 @@ const destroyAndCreatePopperInstanceHandler = () => {
 
   instance = createPopper(inputRef.value, calendarRef.value, {
     placement: props.placement,
-    // placement: 'top',
     modifiers: [
       {
         name: 'offset',
@@ -269,22 +342,16 @@ onUnmounted(() => {
         class="text-sm bg-gray-500 rounded-md p-2 shadow-sm shadow-gray"
         :style="{ width: `${width}px`}"
       >
-        <component
-          :is="displayViewComponentPkg.component"
+        <Component
+          :is="componentState.component"
           :display-date="displayDate"
           :locale="locale"
           :first-day-of-week="firstDayOfWeek"
           :change-view-mode="changeViewMode"
           :set-display-date="setDisplayDate"
-          :decade-header="decadeHeader"
-          :year-header="yearHeader"
-          :month-header="monthHeader"
-          :day-header="dayHeader"
-          :decade-body="decadeBody"
           :weekday-date-list="weekdayDateList"
-          :year-body="yearBody"
-          :month-body="monthBody"
-          :day-body="dayBody"
+          :header="componentState.header"
+          :body="componentState.body"
         />
       </div>
     </Teleport>

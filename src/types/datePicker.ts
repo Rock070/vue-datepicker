@@ -38,9 +38,9 @@ export interface TimeItem {
 }
 
 export const enum Mode {
-  DatePicker = 1,
-  DatePickerMultiple = 1 << 1,
-  DateRange = 1 << 2,
+  DatePicker = 'date-picker',
+  DatePickerMultiple = 'date-picker-multiple',
+  DateRange = 'date-range',
 }
 
 export const enum ViewMode {
