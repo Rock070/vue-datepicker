@@ -12,7 +12,7 @@ import {
 
 type MonthDate = 'this' | 'last' | 'next';
 
-const getCalendar = (date: Date): CalendarBtn[] => {
+const getCalendar = (date: Date, firstDayOfWeek = 0): CalendarBtn[] => {
   const { y, m } = get(date);
 
   const firstDayOfMonth = getFirstDayOfMonth(date);
@@ -20,8 +20,9 @@ const getCalendar = (date: Date): CalendarBtn[] => {
   const { day: firstDayOfMonthDay } = get(firstDayOfMonth);
   const { day: lastDayOfMonthDay } = get(lastDayOfMonth);
 
-  const lastMonthDays = firstDayOfMonthDay;
-  const nextMonthDays = DAYS_NUM_IN_ONE_ROW - lastDayOfMonthDay - 1;
+  const lastMonthDays = firstDayOfMonthDay - firstDayOfWeek;
+  const nextMonthDays =
+    DAYS_NUM_IN_ONE_ROW - lastDayOfMonthDay + firstDayOfWeek - 1;
   const daysNumInThisMonth = getHowManyDaysInThisMonth(date);
 
   const result: CalendarBtn[] = [];

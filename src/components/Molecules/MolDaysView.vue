@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useAttrs } from 'vue';
+import { computed } from 'vue';
 
 import BasicButton from '@/components/Atoms/BasicButton.vue';
 import BasicTable from '@/components/Atoms/BasicTable.vue';
 import MolButtonArrowPair from '@/components/Molecules/MolButtonArrowPair.vue';
-import { CALENDER_HEADER } from '@/helpers/const';
 import setCalculatedTime from '@/helpers/setCalculatedTime';
 import { CalendarBtn, ViewMode } from '@/types/datePicker';
+import createRange from '@/utils/createRange';
 import add from '@/utils/time/add';
 import minus from '@/utils/time/minus';
 interface MolDayProps {
@@ -15,9 +15,10 @@ interface MolDayProps {
   setDisplayDate: (date: Date) => void;
   changeViewMode: (mode: ViewMode) => void;
   dayBody: CalendarBtn[][];
+  weekdayDateList: string[];
 }
 
-const props = defineProps<MolDayProps>();
+const props = withDefaults(defineProps<MolDayProps>(), {});
 </script>
 
 <template>
@@ -44,7 +45,7 @@ const props = defineProps<MolDayProps>();
             <template #header>
               <tr>
                 <th
-                  v-for="item in CALENDER_HEADER"
+                  v-for="item in weekdayDateList"
                   :key="item"
                   class="p-1 m-1"
                 >
@@ -89,3 +90,4 @@ const props = defineProps<MolDayProps>();
     </template>
   </BasicTable>
 </template>
+

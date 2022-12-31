@@ -8,10 +8,16 @@ import MolDay from '@/components/Molecules/MolDaysView.vue';
 import MolDecade from '@/components/Molecules/MolDecadesView.vue';
 import MolMonth from '@/components/Molecules/MolMonthsView.vue';
 import MolYear from '@/components/Molecules/MolYearsView.vue';
+import getNavigatorLocale from '@/helpers/getNavigatorLocale';
 import { useCalendar } from '@/hooks/useCalendar';
 import { useCalendarMultiple } from '@/hooks/useCalendarMultiple';
 import { useDateRange } from '@/hooks/useDateRange.js';
-import { Mode, PopperOffsetCtx, ViewMode } from '@/types/datePicker';
+import {
+  Mode,
+  PopperOffsetCtx,
+  UseFnParams,
+  ViewMode,
+} from '@/types/datePicker';
 import { isArray, isValidDate } from '@/utils/is';
 
 import type { Placement } from '@popperjs/core';
@@ -25,7 +31,9 @@ export interface CalendarProps {
   mode?: Mode;
   format?: string;
   disabledDate?: (date: Date) => boolean;
+  firstDayOfWeek?: number | string;
   width?: number;
+  locale?: Intl.LocalesArgument;
   placement?: Placement;
 }
 
@@ -38,11 +46,13 @@ interface CalendarEmits {
 
 const props = withDefaults(defineProps<CalendarProps>(), {
   modelValue: undefined,
-  width: 350,
+  width: 300,
   mode: Mode.DatePicker,
   format: 'yyyy-MM-dd',
+  firstDayOfWeek: 0, // Sets the day that determines the first week of the year, starting with 0 for Sunday.
   disabledDate: () => false,
   placement: 'auto',
+  locale: getNavigatorLocale(),
 });
 
 const emits = defineEmits<CalendarEmits>();
@@ -73,32 +83,36 @@ if (props.mode & Mode.DateRange && !isArray(props.modelValue)) {
 }
 
 const useFn = (function () {
+  const params = {
+    date: modelValue as Ref<Date>,
+    setDate: setDate as (date: Date) => void,
+    disabledDate: props.disabledDate,
+    toggleOpen,
+    firstDayOfWeek: computed(() =>
+      Math.round(Number(props.firstDayOfWeek) % 7)
+    ),
+    locale: computed(() => props.locale),
+  };
   switch (props.mode) {
-    case Mode.DateRange:
-      return () =>
-        useDateRange(
-          modelValue as Ref<Date[]>,
-          setDate as (date: Date[]) => any,
-          props.disabledDate,
-          toggleOpen
-        );
-    case Mode.DatePickerMultiple:
-      return () =>
-        useCalendarMultiple(
-          modelValue as Ref<Date[]>,
-          setDate as (date: Date[]) => any,
-          props.disabledDate,
-          toggleOpen
-        );
+    // case Mode.DateRange:
+    //   return () =>
+    //     useDateRange(
+    //       modelValue as Ref<Date[]>,
+    //       setDate as (date: Date[]) => any,
+    //       props.disabledDate,
+    //       toggleOpen
+    //     );
+    // case Mode.DatePickerMultiple:
+    //   return () =>
+    //     useCalendarMultiple(
+    //       modelValue as Ref<Date[]>,
+    //       setDate as (date: Date[]) => any,
+    //       props.disabledDate,
+    //       toggleOpen
+    //     );
     case Mode.DatePicker:
     default:
-      return () =>
-        useCalendar(
-          modelValue as Ref<Date>,
-          setDate as (date: Date) => any,
-          props.disabledDate,
-          toggleOpen
-        );
+      return () => useCalendar(params);
   }
 })();
 
@@ -112,6 +126,7 @@ const {
   monthHeader,
   dayHeader,
   decadeBody,
+  weekdayDateList,
   yearBody,
   monthBody,
   dayBody,
@@ -247,28 +262,32 @@ onUnmounted(() => {
       @change="onInputChange"
       @click.self="toggleOpen(true)"
     >
-    <!-- <Teleport to="body"> -->
-    <div
-      v-if="isOpen"
-      ref="calendarRef"
-      class="text-sm bg-gray-500 rounded-md p-2 shadow-sm shadow-gray"
-    >
-      <component
-        :is="displayViewComponentPkg.component"
-        :display-date="displayDate"
-        :change-view-mode="changeViewMode"
-        :set-display-date="setDisplayDate"
-        :decade-header="decadeHeader"
-        :year-header="yearHeader"
-        :month-header="monthHeader"
-        :day-header="dayHeader"
-        :decade-body="decadeBody"
-        :year-body="yearBody"
-        :month-body="monthBody"
-        :day-body="dayBody"
-      />
-    </div>
-    <!-- </Teleport> -->
+    <Teleport to="body">
+      <div
+        v-if="isOpen"
+        ref="calendarRef"
+        class="text-sm bg-gray-500 rounded-md p-2 shadow-sm shadow-gray"
+        :style="{ width: `${width}px`}"
+      >
+        <component
+          :is="displayViewComponentPkg.component"
+          :display-date="displayDate"
+          :locale="locale"
+          :first-day-of-week="firstDayOfWeek"
+          :change-view-mode="changeViewMode"
+          :set-display-date="setDisplayDate"
+          :decade-header="decadeHeader"
+          :year-header="yearHeader"
+          :month-header="monthHeader"
+          :day-header="dayHeader"
+          :decade-body="decadeBody"
+          :weekday-date-list="weekdayDateList"
+          :year-body="yearBody"
+          :month-body="monthBody"
+          :day-body="dayBody"
+        />
+      </div>
+    </Teleport>
   </div>
 </template>
 
