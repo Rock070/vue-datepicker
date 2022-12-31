@@ -2,16 +2,6 @@
 // eslint-disable-next-line import/order
 import { Mode } from '@/types/datePicker';
 
-/**
- * modelValue
- * mode
- * format
- * disabledDate
- * firstDayOfWeek
- * width
- * locale
- * placement
- */
 const modeOptions = [
   {
     label: 'DatePicker',
