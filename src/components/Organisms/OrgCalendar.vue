@@ -77,7 +77,7 @@ if (props.mode == undefined) {
   // eslint-disable-next-line no-console
   console.error('mode');
 }
-if (props.mode & Mode.DateRange && !isArray(props.modelValue)) {
+if (props.mode === Mode.DateRange && !isArray(props.modelValue)) {
   // eslint-disable-next-line no-console
   console.error('Date need to be array type');
 }
