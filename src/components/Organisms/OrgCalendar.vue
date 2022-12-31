@@ -52,7 +52,7 @@ const props = withDefaults(defineProps<CalendarProps>(), {
   firstDayOfWeek: 0, // Sets the day that determines the first week of the year, starting with 0 for Sunday.
   disabledDate: () => false,
   placement: 'auto',
-  locale: getNavigatorLocale(),
+  locale: getNavigatorLocale(), // set browser language from user prefer
 });
 
 const emits = defineEmits<CalendarEmits>();

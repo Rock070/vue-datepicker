@@ -61,13 +61,13 @@ export const useCalendar = (params: UseFnParams) => {
       return itemDate > date[0] && itemDate < hoverDate.value;
     };
 
-    const calendarDisplay = computed<CalendarBtn[][]>(() => {
+    const calendarDisplay: CalendarBtn[][] = (() => {
       const result = getCalendar(displayDate.value, firstDayOfWeek.value).map(
         item => {
           const value = item.value as Date;
           const isSelected = isSameDate(value, date.value);
 
-          const disabled = (function () {
+          const disabled = (() => {
             const compareDate = isToday(value)
               ? getEndTimeOfTheDate(value)
               : value;
@@ -97,9 +97,9 @@ export const useCalendar = (params: UseFnParams) => {
       );
 
       return splitGroup(result, DAYS_NUM_IN_ONE_ROW);
-    });
+    })();
 
-    dayBody.value = calendarDisplay.value;
+    dayBody.value = calendarDisplay;
   };
 
   const getMonthsHeader = () => {

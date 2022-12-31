@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<MolDecadeProps>(), {});
                 >
                   <BasicButton
                     data-cy="calendar-decade-btn"
-                    class="w-full px-3 py-3 text-center"
+                    class="w-full px-1 py-3 text-center"
                     :class="{
                       'bg-blue-300 hover:bg-blue-300':item.isSelected,
                     }"
