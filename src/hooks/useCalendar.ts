@@ -213,7 +213,7 @@ export const useCalendar = (params: UseFnParams) => {
   };
 
   watch(
-    [date, displayDate, viewMode],
+    [date, displayDate, viewMode, locale, weekdayDateList],
     () => {
       switch (viewMode.value) {
         case ViewMode.Day:
