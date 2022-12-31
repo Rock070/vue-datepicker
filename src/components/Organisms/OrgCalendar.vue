@@ -25,7 +25,7 @@ import type { Ref } from 'vue';
 
 export type PopperInstance = ReturnType<typeof createPopper>;
 
-// TODO: start-day-of-week, lang, shortcut,
+// TODO: shortcut,
 export interface CalendarProps {
   modelValue?: Date | Date[];
   mode?: Mode;

@@ -7,7 +7,6 @@ import getTimeLocale from '@/helpers/getTimeLocale';
 import isSameYearMonth from '@/helpers/isSameYearMonth';
 import { CalendarBtn, UseFnParams, ViewMode } from '@/types/datePicker';
 import createRange from '@/utils/createRange';
-import pipe from '@/utils/pipe';
 import splitGroup from '@/utils/splitGroup';
 import { get } from '@/utils/time/get';
 import getCentury from '@/utils/time/getCentury';
@@ -24,9 +23,13 @@ export const useCalendar = (params: UseFnParams) => {
   const [displayDate, setDisplayDate] = useActive(date.value);
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
 
+  const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
+  const weekDayStrList = createRange(7).map(
+    item => `2023-1-${1 + item + firstDayOfWeek.value}`
+  ); // 2023-1-1 is Sunday;
+
   const dayHeader = computed(() => {
     const { y, m } = get(displayDate.value);
-    const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
     const monthList = monthStrList.map(item =>
       getTimeLocale(new Date(item), locale.value, { month: 'long' })
     );
@@ -34,24 +37,12 @@ export const useCalendar = (params: UseFnParams) => {
   });
 
   const weekdayDateList = computed(() => {
-    const weekDayStrList = createRange(7).map(
-      item => `2023-1-${1 + item + firstDayOfWeek.value}`
-    ); // 2023-1-1 is Sunday);
     return weekDayStrList.map(item =>
       getTimeLocale(new Date(item), locale.value, { weekday: 'short' })
     );
   });
 
   const dayBody = computed<CalendarBtn[][]>(() => {
-    const [hoverDate, setHoverDate] = useActive(date.value);
-
-    const isRangeHoverHandler = (itemDate: Date) => {
-      if (!Array.isArray(date)) return false;
-      if (hoverDate < date[0])
-        return itemDate < date[0] && itemDate > hoverDate.value;
-      return itemDate > date[0] && itemDate < hoverDate.value;
-    };
-
     const calendarDisplay: CalendarBtn[][] = (() => {
       const result = getCalendar(displayDate.value, firstDayOfWeek.value).map(
         item => {
@@ -76,11 +67,6 @@ export const useCalendar = (params: UseFnParams) => {
           return {
             ...item,
             clickFn,
-            mouseseEnter: () => {
-              // TODO: 可以優化成用 css hover + not:hover + tailwind group
-              setHoverDate(value);
-            },
-            isRangeHover: isRangeHoverHandler(value),
             isSelected,
             disabled,
           };
@@ -99,12 +85,12 @@ export const useCalendar = (params: UseFnParams) => {
   });
 
   const monthBody = computed<CalendarBtn[][]>(() => {
-    const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
+    const { y } = get(displayDate.value);
+
     const monthList = monthStrList.map(item =>
       getTimeLocale(new Date(item), locale.value, { month: 'short' })
     );
 
-    const { y } = get(displayDate.value);
     const setDisplayMonth = (monthVal: number) => {
       const selectMonth = new Date(y, monthVal);
       setDisplayDate(selectMonth);
@@ -120,11 +106,8 @@ export const useCalendar = (params: UseFnParams) => {
         isSelected: isSameYearMonth(date.value, new Date(y, index)),
       }));
     };
-    const pipeLine = pipe(transformMonth, (months: CalendarBtn[]) =>
-      splitGroup(months, 3)
-    );
-    const monthGroup = pipeLine(monthList) as CalendarBtn[][];
-    return monthGroup;
+
+    return splitGroup(transformMonth(monthList), 3);
   });
 
   const yearHeader = computed(() => {
@@ -151,12 +134,8 @@ export const useCalendar = (params: UseFnParams) => {
         isSelected: isSameYear(date.value, new Date(y, 1)),
       }));
     };
-    const pipeLine = pipe(transformYear, (years: CalendarBtn[]) =>
-      splitGroup(years, 3)
-    );
-    const yearGroup = pipeLine(years) as CalendarBtn[][];
 
-    return yearGroup;
+    return splitGroup(transformYear(years), 3);
   });
   const decadeHeader = computed(() => {
     const y = getCentury(displayDate.value);
@@ -197,11 +176,8 @@ export const useCalendar = (params: UseFnParams) => {
         isSelected: getIsSelected(new Date(item.value, 1)),
       }));
     };
-    const pipeLine = pipe(transformDecade, (decades: CalendarBtn[]) =>
-      splitGroup(decades, 3)
-    );
-    const decadeGroup = pipeLine(decades) as CalendarBtn[][];
-    return decadeGroup;
+
+    return splitGroup(transformDecade(decades), 3);
   });
 
   return {

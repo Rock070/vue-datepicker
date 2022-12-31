@@ -58,6 +58,15 @@ export const useDateRange = (
       return itemDate > date.value[0] && itemDate < hoverDate.value;
     };
 
+    // copy from old file
+    // const [hoverDate, setHoverDate] = useActive(date.value);
+    //  const isRangeHoverHandler = (itemDate: Date) => {
+    //   if (!Array.isArray(date)) return false;
+    //   if (hoverDate < date[0])
+    //     return itemDate < date[0] && itemDate > hoverDate.value;
+    //   return itemDate > date[0] && itemDate < hoverDate.value;
+    // };
+
     const result = getCalendar(displayDate.value).map(item => {
       if (!displayDate.value) return [];
 
