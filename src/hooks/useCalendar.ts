@@ -17,10 +17,22 @@ import isSameDecade from '@/utils/time/isSameDecade';
 import isSameYear from '@/utils/time/isSameYear';
 import isToday from '@/utils/time/isToday';
 
+import type { Ref } from 'vue';
+
+const useSafeDateValue = (date: Ref<Date | Date[]>) => {
+  return computed(() => {
+    const value = date.value;
+    if (Array.isArray(value)) return value[0] || new Date();
+    return value;
+  });
+};
+
 export const useCalendar = (params: UseFnParams) => {
   const { date, setDate, disabledDate, toggleOpen, firstDayOfWeek, locale } =
     params;
-  const [displayDate, setDisplayDate] = useActive(date.value);
+
+  const safeDate = useSafeDateValue(date);
+  const [displayDate, setDisplayDate] = useActive(safeDate.value);
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
 
   const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
@@ -47,7 +59,7 @@ export const useCalendar = (params: UseFnParams) => {
       const result = getCalendar(displayDate.value, firstDayOfWeek.value).map(
         item => {
           const value = item.value as Date;
-          const isSelected = isSameDate(value, date.value);
+          const isSelected = isSameDate(value, safeDate.value);
 
           const disabled = (() => {
             const compareDate = isToday(value)
@@ -103,7 +115,7 @@ export const useCalendar = (params: UseFnParams) => {
         text: m,
         clickFn: () => setDisplayMonth(index),
         disabled: false,
-        isSelected: isSameYearMonth(date.value, new Date(y, index)),
+        isSelected: isSameYearMonth(safeDate.value, new Date(y, index)),
       }));
     };
 
@@ -131,7 +143,7 @@ export const useCalendar = (params: UseFnParams) => {
         text: String(y),
         clickFn: () => setDisplayYear(y),
         disabled: false,
-        isSelected: isSameYear(date.value, new Date(y, 1)),
+        isSelected: isSameYear(safeDate.value, new Date(y, 1)),
       }));
     };
 
@@ -161,7 +173,7 @@ export const useCalendar = (params: UseFnParams) => {
     };
 
     const getIsSelected = (itemDate: Date) => {
-      if (!Array.isArray(date)) return isSameDecade(date.value, itemDate);
+      if (!Array.isArray(date)) return isSameDecade(safeDate.value, itemDate);
 
       if (date[0] === undefined) return false;
       if (date[1] === undefined) return isSameDecade(date[0], itemDate);

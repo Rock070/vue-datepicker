@@ -6,14 +6,17 @@ const modeOptions = [
   {
     label: 'DatePicker',
     value: Mode.DatePicker,
+    disabled: false,
   },
   {
     label: 'DateRange',
     value: Mode.DateRange,
+    disabled: false,
   },
   {
     label: 'DatePickerMultiple',
     value: Mode.DatePickerMultiple,
+    disabled: true,
   },
 ];
 
@@ -41,14 +44,14 @@ const localesOptions = [
 ];
 
 const formatOptions = [
-  {
-    label: 'yyyy/MM/dd hh:mm:ss',
-    value: 'yyyy/MM/dd hh:mm:ss',
-  },
-  {
-    label: 'yyyy/MM/dd HH:mm:ss',
-    value: 'yyyy/MM/dd HH:mm:ss',
-  },
+  // {
+  // label: 'yyyy/MM/dd hh:mm:ss',
+  // value: 'yyyy/MM/dd hh:mm:ss',
+  // },
+  // {
+  // label: 'yyyy/MM/dd HH:mm:ss',
+  // value: 'yyyy/MM/dd HH:mm:ss',
+  // },
   {
     label: 'yyyy/MM/dd',
     value: 'yyyy/MM/dd',
@@ -61,30 +64,36 @@ const formatOptions = [
 </script>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
-import BasicButton from '@/components/Atoms/BasicButton.vue';
 import OrgCalendar from '@/components/Organisms/OrgCalendar.vue';
 import useActive from '@/composables/useActive';
 
-const [date, setDate] = useActive(new Date());
-const [MultiDate, setMultiDate] = useActive([new Date()]);
-const [rangeDate, setRangeDate] = useActive([new Date()]);
+const date = ref(new Date());
 
 // ---------------- test state ----------------
 const mode = ref(Mode.DatePicker);
 const locale = ref('zh-tw');
-const format = ref('yyyy/MM/dd hh:mm:ss');
+const format = ref('yyyy/MM/dd');
 const firstDayOfWeek = ref(0);
 
 const disabledDate = (date: Date) => {
   if (firstDayOfWeek.value % 2) return date.getDay() % 2 === 0;
   return false;
 };
+
+const dateLocaleString = computed(() => {
+  if (Array.isArray(date.value))
+    return date.value.map(item => item.toLocaleDateString());
+  return date.value.toLocaleDateString();
+});
 </script>
 
 <template>
-  <div class="w-[calc(100vw+300px)] h-[calc(100vh+400px)] flex flex-col items-center justify-center space-y-4">
+  <div
+    :key="mode"
+    class="w-[calc(100vw+300px)] h-[calc(100vh+400px)] flex flex-col items-center justify-center space-y-4"
+  >
     <!-- 測試狀態區 -->
     <div>
       <strong class="font-bold text-xl mb-4 block">選狀態</strong>
@@ -101,7 +110,7 @@ const disabledDate = (date: Date) => {
             <option
               v-for="modeItem in modeOptions"
               :key="modeItem.value"
-              :disabled="modeItem.value !== Mode.DatePicker"
+              :disabled="modeItem.disabled"
               :value="modeItem.value"
             >
               {{ modeItem.label }}
@@ -159,11 +168,12 @@ const disabledDate = (date: Date) => {
     <div class="relative flex flex-col space-y-10 items-center text-center">
       <section>
         <div>Calendar</div>
-        <div>{{ date.toLocaleDateString() }}</div>
+        <div>{{ dateLocaleString }}</div>
         <OrgCalendar
+          :key="mode"
           v-model="date"
           :format="format"
-          :mode="Mode.DatePicker"
+          :mode="mode"
           :first-day-of-week="firstDayOfWeek"
           :locale="locale"
           :disabled-date="disabledDate"

@@ -34,6 +34,7 @@ import {
   CalendarBtn,
   Mode,
   PopperOffsetCtx,
+  UseFnParams,
   ViewMode,
 } from '@/types/datePicker';
 import { isArray, isValidDate } from '@/utils/is';
@@ -86,40 +87,34 @@ const setDate = (val: Date | Date[]) => {
 
 if (props.modelValue == undefined) {
   // eslint-disable-next-line no-console
-  console.error(
+  console.warn(
     'date is undefined, it has to be value as Date type with default mode or Date[] type with multiple, range mode'
   );
 }
 
 if (props.mode == undefined) {
   // eslint-disable-next-line no-console
-  console.error('mode');
+  console.warn('mode');
 }
 if (props.mode === Mode.DateRange && !isArray(props.modelValue)) {
   // eslint-disable-next-line no-console
-  console.error('Date need to be array type');
+  console.warn('Date need to be array type');
 }
 
 const useFn = (function () {
   const params = {
-    date: modelValue as Ref<Date>,
-    setDate: setDate as (date: Date) => void,
+    date: modelValue,
+    setDate: setDate,
     disabledDate: props.disabledDate,
     toggleOpen,
+    locale: computed(() => props.locale),
     firstDayOfWeek: computed(() =>
       Math.round(Number(props.firstDayOfWeek) % 7)
     ),
-    locale: computed(() => props.locale),
-  };
+  } as UseFnParams;
   switch (props.mode) {
-    // case Mode.DateRange:
-    //   return () =>
-    //     useDateRange(
-    //       modelValue as Ref<Date[]>,
-    //       setDate as (date: Date[]) => any,
-    //       props.disabledDate,
-    //       toggleOpen
-    //     );
+    case Mode.DateRange:
+      return () => useDateRange(params);
     // case Mode.DatePickerMultiple:
     //   return () =>
     //     useCalendarMultiple(
@@ -360,8 +355,13 @@ onUnmounted(() => {
 
 <style lang="scss">
 .calendar {
-  &__date--disabled {
-    @apply bg-gray-300 cursor-not-allowed pointer-events-none;
+  &__date {
+    &--disabled {
+      @apply bg-gray-300 cursor-not-allowed pointer-events-none;
+    }
+    &--hover {
+      @apply bg-gray-200 text-gray-700;
+    }
   }
 }
 </style>
