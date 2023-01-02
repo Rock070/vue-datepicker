@@ -20,9 +20,15 @@ const getCalendar = (date: Date, firstDayOfWeek = 0): CalendarBtn[] => {
   const { day: firstDayOfMonthDay } = get(firstDayOfMonth);
   const { day: lastDayOfMonthDay } = get(lastDayOfMonth);
 
-  const lastMonthDays = firstDayOfMonthDay - firstDayOfWeek;
+  const lastMonthDays =
+    firstDayOfMonthDay >= firstDayOfWeek
+      ? firstDayOfMonthDay - firstDayOfWeek
+      : (DAYS_NUM_IN_ONE_ROW - firstDayOfWeek + firstDayOfMonthDay) % 7;
+
   const nextMonthDays =
-    DAYS_NUM_IN_ONE_ROW - lastDayOfMonthDay + firstDayOfWeek - 1;
+    (DAYS_NUM_IN_ONE_ROW - lastDayOfMonthDay + firstDayOfWeek - 1) %
+    DAYS_NUM_IN_ONE_ROW;
+
   const daysNumInThisMonth = getHowManyDaysInThisMonth(date);
 
   const result: CalendarBtn[] = [];
