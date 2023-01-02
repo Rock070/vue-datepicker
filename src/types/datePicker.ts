@@ -65,8 +65,8 @@ export interface PopperOffsetCtx {
 }
 
 export interface UseFnParams {
-  date: Ref<Date>;
-  setDate: (date: Date) => void;
+  date: Ref<Date | Date[]>;
+  setDate: (date: Date | Date[]) => void;
   disabledDate: (date: Date) => boolean;
   toggleOpen: (value?: boolean | undefined) => boolean;
   locale: ComputedRef<Intl.LocalesArgument>;

@@ -21,7 +21,7 @@ const attrs = useAttrs();
     :type="type"
     v-bind="attrs"
     :data-cy="dataCy"
-    class="py-0.5 px-1 rounded-sm"
+    class="py-0.5 px-1"
     :class="[
       className,
       {

@@ -70,9 +70,9 @@ const props = withDefaults(defineProps<MolDayProps>(), {});
                     'text-gray-700': !item.isThisMonth && !item.disabled,
                     'bg-blue-300 text-white': !item.disabled && item.isSelected,
 
-                    'hover:bg-gray-200': !item.isSelected && !item.disabled,
+                    'hover:bg-gray-200 hover:text-gray-700': !item.isSelected && !item.disabled && !item.isRangeHover,
 
-                    'bg-gray-200': item.isRangeHover,
+                    'calendar__date--hover': item.isRangeHover,
 
                     'calendar__date--disabled': item.disabled,
                   }"
@@ -89,4 +89,3 @@ const props = withDefaults(defineProps<MolDayProps>(), {});
     </template>
   </BasicTable>
 </template>
-

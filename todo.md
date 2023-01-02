@@ -4,6 +4,7 @@
 
 - [ ] multiple
 - [ ] range：多個日曆
+- [ ] confirm: boolean
 - [ ] 滾輪事件：左右滑動
 - [ ] datetime-picker
 - [ ] datetime-range-picker
