@@ -16,7 +16,7 @@ const modeOptions = [
   {
     label: 'DatePickerMultiple',
     value: Mode.DatePickerMultiple,
-    disabled: true,
+    disabled: false,
   },
 ];
 
@@ -67,12 +67,11 @@ const formatOptions = [
 import { computed, ref } from 'vue';
 
 import OrgCalendar from '@/components/Organisms/OrgCalendar.vue';
-import useActive from '@/composables/useActive';
 
 const date = ref(new Date());
 
 // ---------------- test state ----------------
-const mode = ref(Mode.DatePicker);
+const mode = ref(Mode.DatePickerMultiple);
 const locale = ref('zh-tw');
 const format = ref('yyyy/MM/dd');
 const firstDayOfWeek = ref(0);
@@ -166,9 +165,11 @@ const dateLocaleString = computed(() => {
     </div>
     <hr class="w-full w-min-screen h-px !my-10">
     <div class="relative flex flex-col space-y-10 items-center text-center">
-      <section>
+      <section class="space-y-3">
         <div>Calendar</div>
-        <div>{{ dateLocaleString }}</div>
+        <div class="max-w-[40vw] max-h-20 overflow-scroll">
+          {{ dateLocaleString }}
+        </div>
         <OrgCalendar
           :key="mode"
           v-model="date"

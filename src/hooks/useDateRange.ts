@@ -17,7 +17,6 @@ import isSameDate from '@/utils/time/isSameDate';
 import isToday from '@/utils/time/isToday';
 
 import type { Ref } from 'vue';
-
 const useSafeDateValue = (date: Ref<Date | Date[]>, index: 0 | 1) => {
   return computed(() => {
     const value = date.value;
@@ -26,14 +25,11 @@ const useSafeDateValue = (date: Ref<Date | Date[]>, index: 0 | 1) => {
   });
 };
 
+export default useSafeDateValue;
+
 export const useDateRange = (params: UseFnParams) => {
   const { date, setDate, disabledDate, toggleOpen, firstDayOfWeek, locale } =
     params;
-
-  // const safeDate = computed(() => {
-  //   if (Array.isArray(date.value)) return date.value[0];
-  //   return date.value;
-  // });
 
   const date1 = useSafeDateValue(date, 0);
   const date2 = useSafeDateValue(date, 1);
