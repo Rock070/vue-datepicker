@@ -18,20 +18,21 @@ import isSameYear from '@/utils/time/isSameYear';
 import isToday from '@/utils/time/isToday';
 
 import type { Ref } from 'vue';
-
-const useSafeDateValue = (date: Ref<Date | Date[]>) => {
+const useSafeDateValue = (date: Ref<Date | Date[]>, index: 0 | 1) => {
   return computed(() => {
     const value = date.value;
-    if (Array.isArray(value)) return value[0] || new Date();
+    if (Array.isArray(value)) return value[index] || new Date();
     return value;
   });
 };
+
+export default useSafeDateValue;
 
 export const useCalendar = (params: UseFnParams) => {
   const { date, setDate, disabledDate, toggleOpen, firstDayOfWeek, locale } =
     params;
 
-  const safeDate = useSafeDateValue(date);
+  const safeDate = useSafeDateValue(date, 0);
   const [displayDate, setDisplayDate] = useActive(safeDate.value);
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
 

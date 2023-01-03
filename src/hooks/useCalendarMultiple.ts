@@ -1,9 +1,11 @@
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 
 import useActive from '@/composables/useActive';
-import { DAYS_NUM_IN_ONE_ROW, MONTH_NAMES } from '@/helpers/const';
+import { DAYS_NUM_IN_ONE_ROW } from '@/helpers/const';
 import getCalendar from '@/helpers/getCalendar';
-import { CalendarBtn, ViewMode } from '@/types/datePicker';
+import getTimeLocale from '@/helpers/getTimeLocale';
+import { CalendarBtn, UseFnParams, ViewMode } from '@/types/datePicker';
+import createRange from '@/utils/createRange';
 import pipe from '@/utils/pipe';
 import splitGroup from '@/utils/splitGroup';
 import { get } from '@/utils/time/get';
@@ -15,86 +17,105 @@ import isToday from '@/utils/time/isToday';
 import toggleArrayValue from '@/utils/toggleArrayValue';
 
 import type { Ref } from 'vue';
+const useSafeArrayDateValue = (date: Ref<Date | Date[]>) => {
+  return computed(() => {
+    const value = date.value;
+    if (Array.isArray(value)) return value;
+    return [value];
+  });
+};
 
-export const useCalendarMultiple = (
-  date: Ref<Date[]>,
-  setDate: (date: Date[]) => void,
-  disabledDate: (date: Date) => boolean,
-  toggleOpen: (val: boolean) => boolean
-) => {
-  const [displayDate, setDisplayDate] = useActive(date.value[0]);
+export const useCalendarMultiple = (params: UseFnParams) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { date, setDate, disabledDate, toggleOpen, firstDayOfWeek, locale } =
+    params;
+
+  const safeDate = useSafeArrayDateValue(date);
+  const [displayDate, setDisplayDate] = useActive(safeDate.value[0]);
+
+  const monthStrList = createRange(12).map(item => `2023-${1 + item}-1`);
 
   const [viewMode, changeViewMode] = useActive<ViewMode>(ViewMode.Day);
+  const weekdayDateList = computed(() => {
+    const weekDayStrList = createRange(7).map(
+      item => `2023-1-${1 + item + firstDayOfWeek.value}`
+    ); // 2023-1-1 is Sunday;
+    return weekDayStrList.map(item =>
+      getTimeLocale(new Date(item), locale.value, { weekday: 'short' })
+    );
+  });
 
-  const dayHeader = ref('');
-  const dayBody = ref<CalendarBtn[][]>([]);
-  const monthHeader = ref('');
-  const monthBody = ref<CalendarBtn[][]>([]);
-  const yearHeader = ref('');
-  const yearBody = ref<CalendarBtn[][]>([]);
-  const decadeHeader = ref('');
-  const decadeBody = ref<CalendarBtn[][]>([]);
-
-  // body
-
-  const getDayBody = () => {
+  const dayBody = computed(() => {
     const calendarDisplay = computed<CalendarBtn[][]>(() => {
       if (!displayDate.value) return [];
-      const result = getCalendar(displayDate.value).map(item => {
-        const value = item.value as Date;
+      const result = getCalendar(displayDate.value, firstDayOfWeek.value).map(
+        item => {
+          const value = item.value as Date;
 
-        const isSelected = !!date.value.find(item => isSameDate(item, value));
+          const isSelected = !!safeDate.value.find(item =>
+            isSameDate(item, value)
+          );
 
-        const setDateImpl = (val: Date) => {
-          setDisplayDate(val);
-          setDate([...(toggleArrayValue(date.value, val) as Date[])]);
-        };
+          const setDateImpl = (val: Date) => {
+            setDisplayDate(val);
+            setDate([...(toggleArrayValue(safeDate.value, val) as Date[])]);
+          };
 
-        const disabled = (function () {
-          const compareDate = isToday(value)
-            ? getEndTimeOfTheDate(value)
-            : value;
-          return disabledDate(compareDate);
-        })();
+          const disabled = (function () {
+            const compareDate = isToday(value)
+              ? getEndTimeOfTheDate(value)
+              : value;
+            return disabledDate(compareDate);
+          })();
+          /* FIXME: 日期應比較大小插入
+           * ["2023/1/3", "2023/1/17", "2023/1/20", "2023/1/6", "2023/1/4"] => ["2023/1/3", "2023/1/4", "2023/1/6", "2023/1/17", "2023/1/20"]
+           */
+          const clickFn = disabled
+            ? undefined
+            : () => {
+                setDateImpl(value);
+                // toggleOpen(false);
+              };
 
-        const clickFn = disabled
-          ? undefined
-          : () => {
-              setDateImpl(value);
-              toggleOpen(false);
-            };
-
-        return {
-          ...item,
-          clickFn,
-          isSelected,
-          disabled,
-        };
-      });
+          return {
+            ...item,
+            clickFn,
+            isSelected,
+            disabled,
+          };
+        }
+      );
 
       return splitGroup(result, DAYS_NUM_IN_ONE_ROW);
     });
 
-    dayBody.value = calendarDisplay.value;
-  };
+    return calendarDisplay.value;
+  });
 
-  const getDayHeader = () => {
+  const dayHeader = computed(() => {
     if (!displayDate.value) return '';
     const { y, m } = get(displayDate.value);
+    const monthList = monthStrList.map(item =>
+      getTimeLocale(new Date(item), locale.value, { month: 'long' })
+    );
 
-    dayHeader.value = `${MONTH_NAMES[m]} ${y}`;
-  };
+    return `${monthList[m]} ${y}`;
+  });
 
-  const getMonthsHeader = () => {
+  const monthHeader = computed(() => {
     if (!displayDate.value) return;
     const { y } = get(displayDate.value);
 
-    monthHeader.value = `${y}`;
-  };
+    return `${y}`;
+  });
 
-  const getMonthsBody = () => {
+  const monthBody = computed(() => {
     if (!displayDate.value) return [];
     const { y } = get(displayDate.value);
+
+    const monthList = monthStrList.map(item =>
+      getTimeLocale(new Date(item), locale.value, { month: 'short' })
+    );
     const setDisplayMonth = (monthVal: number) => {
       const selectMonth = new Date(y, monthVal);
       setDisplayDate(selectMonth);
@@ -103,7 +124,7 @@ export const useCalendarMultiple = (
 
     const transformMonth = (months: string[]): CalendarBtn[] => {
       const getIsSelected = (month: number) => {
-        return !!date.value.find(item => item.getMonth() === month);
+        return !!safeDate.value.find(item => item.getMonth() === month);
       };
       return months.map((m, index) => ({
         value: index,
@@ -117,18 +138,18 @@ export const useCalendarMultiple = (
     const pipeLine = pipe(transformMonth, (months: CalendarBtn[]) =>
       splitGroup(months, 3)
     );
-    const monthGroup = pipeLine(MONTH_NAMES) as CalendarBtn[][];
+    const monthGroup = pipeLine(monthList) as CalendarBtn[][];
 
-    monthBody.value = monthGroup;
-  };
+    return monthGroup;
+  });
 
-  const getYearsHeader = () => {
+  const yearHeader = computed(() => {
     if (!displayDate.value) return '';
     const y = getDecade(displayDate.value);
-    yearHeader.value = `${y + 1} - ${y + 10}`;
-  };
+    return `${y + 1} - ${y + 10}`;
+  });
 
-  const getYearsBody = () => {
+  const yearBody = computed(() => {
     if (!displayDate.value) return [];
     const year = getDecade(displayDate.value);
     const years = Array.from({ length: 10 }, (_, index) => year + index + 1);
@@ -140,7 +161,7 @@ export const useCalendarMultiple = (
     };
 
     const getIsSelected = (year: number) => {
-      return !!date.value.find(item => item.getFullYear() === year);
+      return !!safeDate.value.find(item => item.getFullYear() === year);
     };
 
     const transformYear = (months: number[]): CalendarBtn[] => {
@@ -152,20 +173,16 @@ export const useCalendarMultiple = (
         isSelected: getIsSelected(y),
       }));
     };
-    const pipeLine = pipe(transformYear, (years: CalendarBtn[]) =>
-      splitGroup(years, 3)
-    );
-    const yearGroup = pipeLine(years) as CalendarBtn[][];
 
-    yearBody.value = yearGroup;
-  };
-  const getDecadesHeader = () => {
+    return splitGroup(transformYear(years), 3);
+  });
+  const decadeHeader = computed(() => {
     if (!displayDate.value) return '';
     const y = getCentury(displayDate.value);
-    decadeHeader.value = `${y + 1} - ${y + 100}`;
-  };
+    return `${y + 1} - ${y + 100}`;
+  });
 
-  const getDecadesBody = () => {
+  const decadeBody = computed(() => {
     if (!displayDate.value) return [];
     const decade = getCentury(displayDate.value);
     const decades = Array.from({ length: 10 }, (_, index) => {
@@ -184,7 +201,9 @@ export const useCalendarMultiple = (
     };
 
     const getIsSelected = (itemDate: Date) => {
-      return !!date.value.find(item => getDecade(item) === getDecade(itemDate));
+      return !!safeDate.value.find(
+        item => getDecade(item) === getDecade(itemDate)
+      );
     };
 
     const transformDecade = (decade: typeof decades): CalendarBtn[] => {
@@ -195,46 +214,16 @@ export const useCalendarMultiple = (
         isSelected: getIsSelected(new Date(item.value, 1)),
       }));
     };
-    const pipeLine = pipe(transformDecade, (decades: CalendarBtn[]) =>
-      splitGroup(decades, 3)
-    );
-    const decadeGroup = pipeLine(decades) as CalendarBtn[][];
 
-    decadeBody.value = decadeGroup;
-  };
-
-  watch(
-    [date, displayDate, viewMode],
-    () => {
-      switch (viewMode.value) {
-        case ViewMode.Day:
-          getDayHeader();
-          getDayBody();
-          break;
-        case ViewMode.Month:
-          getMonthsHeader();
-          getMonthsBody();
-          break;
-        case ViewMode.Year:
-          getYearsHeader();
-          getYearsBody();
-          break;
-        case ViewMode.Decade:
-          getDecadesHeader();
-          getDecadesBody();
-          break;
-      }
-    },
-    {
-      immediate: true,
-    }
-  );
+    return splitGroup(transformDecade(decades), 3);
+  });
 
   return {
     displayDate,
     setDisplayDate,
     viewMode,
     changeViewMode,
+    weekdayDateList,
     dayHeader,
     dayBody,
     monthHeader,

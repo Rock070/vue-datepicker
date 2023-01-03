@@ -115,14 +115,8 @@ const useFn = (function () {
   switch (props.mode) {
     case Mode.DateRange:
       return () => useDateRange(params);
-    // case Mode.DatePickerMultiple:
-    //   return () =>
-    //     useCalendarMultiple(
-    //       modelValue as Ref<Date[]>,
-    //       setDate as (date: Date[]) => any,
-    //       props.disabledDate,
-    //       toggleOpen
-    //     );
+    case Mode.DatePickerMultiple:
+      return () => useCalendarMultiple(params);
     case Mode.DatePicker:
     default:
       return () => useCalendar(params);
@@ -228,40 +222,6 @@ watch(viewMode, val => {
   componentState.header = modeComponent.header;
   // @ts-expect-error: original type `ComputedRef` is automatically unRef by reactive
   componentState.body = modeComponent.body;
-});
-
-const displayViewComponentPkg = computed(() => {
-  switch (viewMode.value) {
-    case ViewMode.Decade:
-      return {
-        key: 'decade',
-        component: MolDecade,
-        header: decadeHeader,
-        body: decadeBody,
-      };
-    case ViewMode.Year:
-      return {
-        key: 'year',
-        component: MolYear,
-        header: yearHeader,
-        body: yearBody,
-      };
-    case ViewMode.Month:
-      return {
-        key: 'month',
-        component: MolMonth,
-        header: monthHeader,
-        body: monthBody,
-      };
-    case ViewMode.Day:
-    default:
-      return {
-        key: 'day',
-        component: MolDay,
-        header: dayHeader,
-        body: dayBody,
-      };
-  }
 });
 
 let instance: PopperInstance | null = null;
