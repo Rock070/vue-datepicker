@@ -14,6 +14,7 @@
 ## refactor
 
 - [ ] 日曆使用 button 元素
+- [ ] popperjs migrate to floating-ui
 
 ## Docs
 
